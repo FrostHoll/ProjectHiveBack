@@ -1,0 +1,20 @@
+server:
+  servlet:
+    context-path: /ProjectHiveBack
+spring:
+  datasource:
+    url: jdbc:postgresql://89.23.118.196:5432/default_db
+    username: backendclient
+    password: 15GGKSF3Gwe#-
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+    database: postgresql
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+jwt:
+  secret: 418FB88E3BC42CE46765866934E2D5FF0EBACC4EF773305FDFDF10B1EFA3908E

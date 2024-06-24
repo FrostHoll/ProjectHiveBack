@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org">
+    <head>
+        <meta charset="UTF-8">
+        <title>Вход</title>
+        <link rel="stylesheet" href="../static/style/login.css" th:href="@{/style/login.css}"/>
+    </head>
+    <body>
+        <div class="info-modal">
+            <div th:if="${param.error}">
+                Направильный логин или пароль.
+            </div>
+            <div th:if="${param.logout}">
+                Вы вышли из системы.
+            </div>
+        </div>       
+        <div class="login-modal">
+            <h1>Финансовый калькулятор</h1>
+            <form class="login-form" th:action="@{/login}" method="post">
+                <div><label for="username">Логин</label></div>
+                <div><input class="input-box" type="text" name="username" id="username" required autocomplete="on"/></div>
+                <div><label for="password">Пароль</label></div>
+                <div><input class="input-box" type="password" name="password" id="password" required autocomplete="off"/></div>
+                <div>
+                    <button class="button-login" type="submit">
+                        Войти
+                    </button>
+
+                </div>
+                <div><a style="font-size: 0.8em;" href="/registration">Регистрация</a></div>
+            </form>
+        </div>
+
+    </body>
+</html>

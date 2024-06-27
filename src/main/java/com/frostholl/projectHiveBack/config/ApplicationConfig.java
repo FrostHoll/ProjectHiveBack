@@ -20,6 +20,8 @@ public class ApplicationConfig {
 
     private final UserService userService;
 
+    private final PasswordEncoder passwordEncoder;
+
     @Bean
     public UserDetailsService userDetailsService() throws UserNotFoundException {
         return userService::getUserByLogin;
@@ -29,7 +31,7 @@ public class ApplicationConfig {
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
         authProvider.setUserDetailsService(userDetailsService());
-        authProvider.setPasswordEncoder(passwordEncoder());
+        authProvider.setPasswordEncoder(passwordEncoder);
         return authProvider;
     }
 
@@ -37,10 +39,4 @@ public class ApplicationConfig {
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return new ProviderManager(authenticationProvider());
     }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
-
 }

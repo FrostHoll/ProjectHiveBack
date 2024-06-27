@@ -68,4 +68,16 @@ public class AuthenticationExceptionHandler {
 
         return new ResponseEntity<>(authException, HttpStatus.BAD_REQUEST);
     }
+
+    @ExceptionHandler(value = {WeakPasswordException.class})
+    public ResponseEntity<Object> handleWeakPasswordException
+            (WeakPasswordException weakPasswordException) {
+        AuthenticationException authenticationException = new AuthenticationException(
+                weakPasswordException.getMessage(),
+                weakPasswordException.getCause(),
+                HttpStatus.BAD_REQUEST
+        );
+
+        return new ResponseEntity<>(authenticationException, HttpStatus.BAD_REQUEST);
+    }
 }

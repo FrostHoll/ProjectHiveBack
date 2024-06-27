@@ -3,6 +3,7 @@ package com.frostholl.projectHiveBack.auth;
 
 import com.frostholl.projectHiveBack.config.JwtService;
 import com.frostholl.projectHiveBack.exception.auth.IncorrectUserDataException;
+import com.frostholl.projectHiveBack.exception.auth.WeakPasswordException;
 import com.frostholl.projectHiveBack.model.User;
 import com.frostholl.projectHiveBack.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -24,8 +25,10 @@ public class AuthenticationService {
     private final AuthenticationManager authenticationManager;
 
     public AuthenticationResponse register(RegisterRequest request) {
-        if (!service.isUserDataValid(request.getLogin(), request.getFullName(), request.getPassword()))
+        if (!service.isUserDataValid(request.getLogin(), request.getFullName()))
             throw new IncorrectUserDataException("Incorrect user data.");
+        if (!service.isPasswordValid(request.getPassword()))
+            throw new WeakPasswordException("Weak password.");
         var user = User.builder()
                 .fullName(request.getFullName())
                 .login(request.getLogin())

@@ -19,8 +19,8 @@ public class UserService implements UserDetailsService {
 
     private final UserRepository userRepository;
 
-    public boolean isUserDataValid(String login, String fullName, String password) {
-        return isLoginValid(login) && isFullNameValid(fullName) && isPasswordValid(password);
+    public boolean isUserDataValid(String login, String fullName) {
+        return isLoginValid(login) && isFullNameValid(fullName);
     }
 
     public boolean isLoginValid(String login) {

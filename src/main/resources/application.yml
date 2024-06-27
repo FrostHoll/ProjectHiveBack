@@ -1,6 +1,4 @@
-server:
-  servlet:
-    context-path: /ProjectHiveBack
+
 spring:
   datasource:
     url: jdbc:postgresql://89.23.118.196:5432/default_db

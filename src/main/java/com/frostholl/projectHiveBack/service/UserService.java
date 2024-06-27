@@ -1,16 +1,20 @@
 package com.frostholl.projectHiveBack.service;
 
+import com.frostholl.projectHiveBack.exception.auth.IncorrectUserDataException;
 import com.frostholl.projectHiveBack.exception.auth.UserLoginAlreadyInUseException;
 import com.frostholl.projectHiveBack.exception.auth.UserNotFoundException;
 import com.frostholl.projectHiveBack.model.User;
 import com.frostholl.projectHiveBack.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 
+@RequiredArgsConstructor
 @Service
 public class UserService implements UserDetailsService {
     private static final String LOGIN_REGEX = "^[a-zA-Z][a-zA-Z0-9_]{5,19}$";
@@ -18,6 +22,8 @@ public class UserService implements UserDetailsService {
     private static final String PASSWORD_REGEX = "^[a-zA-Z0-9!@#$%^&*()_+]{8,16}$";
 
     private final UserRepository userRepository;
+
+    private final PasswordEncoder passwordEncoder;
 
     public boolean isUserDataValid(String login, String fullName) {
         return isLoginValid(login) && isFullNameValid(fullName);
@@ -33,10 +39,6 @@ public class UserService implements UserDetailsService {
 
     public boolean isPasswordValid(String password) {
         return password != null && password.matches(PASSWORD_REGEX);
-    }
-
-    public UserService(UserRepository userRepository) {
-        this.userRepository = userRepository;
     }
 
     public List<User> getUsers() {
@@ -72,5 +74,15 @@ public class UserService implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UserNotFoundException {
         var user = userRepository.findUserByLogin(username);
         return user.orElseThrow(() ->  new UserNotFoundException("User was not found."));
+    }
+
+    public void changeUserPassword(User user, String pass, String newPass) {
+        if (passwordEncoder.matches(pass, user.getPassword())) {
+            throw new IncorrectUserDataException("Wrong password!");
+        }
+
+        user.setPassword(passwordEncoder.encode(newPass));
+
+        userRepository.save(user);
     }
 }

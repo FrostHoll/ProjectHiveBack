@@ -1,15 +1,13 @@
 package com.frostholl.projectHiveBack.controller;
 
 import com.frostholl.projectHiveBack.model.User;
+import com.frostholl.projectHiveBack.request.ChangePasswordRequest;
 import com.frostholl.projectHiveBack.response.UserDetailsResponse;
 import com.frostholl.projectHiveBack.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -37,5 +35,14 @@ public class UserController {
                 .fullName(user.getFullName())
                 .build()
         );
+    }
+
+    @PostMapping("/me/change-password")
+    public ResponseEntity<String> changeUserPassword(
+            @AuthenticationPrincipal User user,
+            @RequestBody ChangePasswordRequest request
+    ) {
+        service.changeUserPassword(user, request.getPassword(), request.getNewPassword());
+        return ResponseEntity.ok("Password has been changed.");
     }
 }

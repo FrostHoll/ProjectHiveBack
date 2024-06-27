@@ -32,32 +32,39 @@ public class User implements UserDetails, CredentialsContainer {
 
     private String fullName;
 
+    @JsonIgnore
     private boolean active;
 
+    @JsonIgnore
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return Collections.singleton(Role.USER);
     }
 
+    @JsonIgnore
     public String getUsername() {
         return login;
     }
 
+    @JsonIgnore
     @Override
     public boolean isAccountNonExpired() {
         return true;
     }
 
+    @JsonIgnore
     @Override
     public boolean isAccountNonLocked() {
         return true;
     }
 
+    @JsonIgnore
     @Override
     public boolean isCredentialsNonExpired() {
         return true;
     }
 
+    @JsonIgnore
     @Override
     public boolean isEnabled() {
         return active;

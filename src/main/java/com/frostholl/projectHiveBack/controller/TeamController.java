@@ -2,6 +2,7 @@ package com.frostholl.projectHiveBack.controller;
 
 import com.frostholl.projectHiveBack.exception.team.InviteCodeNotFoundOrExpiredException;
 import com.frostholl.projectHiveBack.exception.team.NonTeamMemberAccessException;
+import com.frostholl.projectHiveBack.model.Team;
 import com.frostholl.projectHiveBack.model.TeamRole;
 import com.frostholl.projectHiveBack.model.User;
 import com.frostholl.projectHiveBack.request.AddNewTeamRequest;
@@ -13,6 +14,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -66,5 +69,11 @@ public class TeamController {
         }
         service.userJoinTeam(user, code.getTeam());
         return ResponseEntity.ok("Joined to the team.");
+    }
+
+    @GetMapping("/user-teams")
+    public ResponseEntity<List<Team>> getUserTeams(@AuthenticationPrincipal User user) {
+        var teams = service.getUsersTeams(user);
+        return ResponseEntity.ok(teams);
     }
 }

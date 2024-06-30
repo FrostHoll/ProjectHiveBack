@@ -32,7 +32,14 @@ public class TeamMemberService {
     public List<TeamMember> getAllMembersOfTeam(Team team) {
         var members = repository.findAll()
                 .stream()
-                .filter((member) -> Objects.equals(member.getTeam().getId(), team.getId()));
+                .filter(member -> Objects.equals(member.getTeam().getId(), team.getId()));
+        return members.toList();
+    }
+
+    public List<TeamMember> getTeamMembersByUser(User user) {
+        var members = repository.findAll()
+                .stream()
+                .filter(teamMember -> Objects.equals(teamMember.getUser().getId(), user.getId()));
         return members.toList();
     }
 }

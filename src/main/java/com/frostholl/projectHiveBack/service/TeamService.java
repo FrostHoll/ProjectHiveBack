@@ -93,4 +93,9 @@ public class TeamService {
         }
         teamMemberService.addNewTeamMember(user, team, TeamRole.MEMBER);
     }
+
+    public List<Team> getUsersTeams(User user) {
+        var members = teamMemberService.getTeamMembersByUser(user);
+        return members.stream().map(TeamMember::getTeam).toList();
+    }
 }

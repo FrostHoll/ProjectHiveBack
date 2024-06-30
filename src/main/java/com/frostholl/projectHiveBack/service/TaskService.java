@@ -56,7 +56,7 @@ public class TaskService {
         return repository
                 .findAll()
                 .stream()
-                .filter(task -> Objects.equals(task.getTeam().getId(), team.getId()) && !task.isPicked() && !task.isFinished())
+                .filter(task -> Objects.equals(task.getTeam().getId(), team.getId()) && !task.isFinished())
                 .toList();
     }
 

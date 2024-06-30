@@ -15,6 +15,8 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class TeamInfoResponse {
+    public Integer id;
+
     public String teamName;
 
     public TeamMember admin;

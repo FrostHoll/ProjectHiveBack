@@ -37,8 +37,9 @@ public class TeamController {
             throw new NonTeamMemberAccessException("Attempting to access a team without being a member of it.");
         }
         TeamRole userRole = service.getUsersTeamRole(user, team);
-        boolean isModOrAdmin = userRole == TeamRole.MODERATOR || userRole == TeamRole.ADMINISTRATOR;
+        boolean isModOrAdmin = userRole != TeamRole.MEMBER;
         var response = TeamInfoResponse.builder()
+                .id(team.getId())
                 .teamName(team.getName())
                 .admin(team.getAdmin())
                 .memberList(service.getTeamMembers(team))
@@ -52,7 +53,7 @@ public class TeamController {
     public ResponseEntity<String> addNewTeam(
             @AuthenticationPrincipal User user,
             @RequestBody AddNewTeamRequest request
-            ) {
+    ) {
         service.addNewTeam(user, request.getTeamName());
         return ResponseEntity.ok("Team created.");
     }
@@ -61,7 +62,7 @@ public class TeamController {
     public ResponseEntity<String> joinTeam(
             @AuthenticationPrincipal User user,
             @PathVariable String inviteCode
-            ) {
+    ) {
         var code = inviteCodeService.getInviteCodeById(inviteCode);
         if (code.isExpired()) {
             inviteCodeService.deleteInviteCode(code);
@@ -72,8 +73,21 @@ public class TeamController {
     }
 
     @GetMapping("/user-teams")
-    public ResponseEntity<List<Team>> getUserTeams(@AuthenticationPrincipal User user) {
+    public ResponseEntity<List<TeamInfoResponse>> getUserTeams(@AuthenticationPrincipal User user) {
         var teams = service.getUsersTeams(user);
-        return ResponseEntity.ok(teams);
+        var response = teams.stream().map(team -> {
+                    TeamRole userRole = service.getUsersTeamRole(user, team);
+                    boolean isModOrAdmin = userRole != TeamRole.MEMBER;
+                    return TeamInfoResponse.builder()
+                            .id(team.getId())
+                            .teamName(team.getName())
+                            .admin(team.getAdmin())
+                            .memberList(service.getTeamMembers(team))
+                            .inviteCode(isModOrAdmin ? team.getInviteCode() : null)
+                            .activeTasks(taskService.getActiveTeamTasks(team))
+                            .build();
+                }
+        ).toList();
+        return ResponseEntity.ok(response);
     }
 }

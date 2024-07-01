@@ -68,11 +68,25 @@ public class TaskService {
                 .toList();
     }
 
+    public List<Task> getNotApprovedTeamTasks(Team team) {
+        return repository
+                .findAll()
+                .stream()
+                .filter(task -> Objects.equals(task.getTeam().getId(), team.getId())
+                        && task.isPicked()
+                        && task.isFinished()
+                        && !task.isApproved())
+                .toList();
+    }
+
     public List<Task> getFinishedTeamTasks(Team team) {
         return repository
                 .findAll()
                 .stream()
-                .filter(task -> Objects.equals(task.getTeam().getId(), team.getId()) && task.isPicked() && task.isFinished())
+                .filter(task -> Objects.equals(task.getTeam().getId(), team.getId())
+                        && task.isPicked()
+                        && task.isFinished()
+                        && task.isApproved())
                 .toList();
     }
 
@@ -98,5 +112,14 @@ public class TaskService {
                 .filter(task -> task.getExecutor() != null)
                 .filter(task -> Objects.equals(task.getExecutor().getUser().getId(), user.getId()) && !task.isFinished())
                 .toList();
+    }
+
+    public void deleteTask(Task task) {
+        repository.delete(task);
+    }
+
+    public void approveTask(Task task) {
+        task.setApproved(true);
+        repository.save(task);
     }
 }

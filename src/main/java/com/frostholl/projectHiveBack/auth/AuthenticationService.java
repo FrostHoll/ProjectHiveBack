@@ -52,7 +52,6 @@ public class AuthenticationService {
         );
 
         var user = service.getUserByLogin(request.getLogin());
-
         var jwtToken = jwtService.generateToken(user);
         return AuthenticationResponse.builder()
                 .token(jwtToken)

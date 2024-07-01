@@ -19,8 +19,6 @@ public class TeamInfoResponse {
 
     public String teamName;
 
-    public TeamMember admin;
-
     public List<TeamMember> memberList;
 
     public InviteCode inviteCode;

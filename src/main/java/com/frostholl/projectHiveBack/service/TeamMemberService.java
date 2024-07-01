@@ -42,4 +42,13 @@ public class TeamMemberService {
                 .filter(teamMember -> Objects.equals(teamMember.getUser().getId(), user.getId()));
         return members.toList();
     }
+
+    public void deleteTeamMember(TeamMember teamMember) {
+        repository.delete(teamMember);
+    }
+
+    public void grantTeamMember(TeamMember teamMember, TeamRole role) {
+        teamMember.setRole(role);
+        repository.save(teamMember);
+    }
 }

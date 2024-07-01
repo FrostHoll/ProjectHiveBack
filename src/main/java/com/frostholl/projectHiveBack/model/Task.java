@@ -28,6 +28,8 @@ public class Task {
 
     private ZonedDateTime deadline;
 
+    private boolean approved = false;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "publisher_id")
     private TeamMember publisher;

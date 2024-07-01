@@ -30,14 +30,14 @@ public class InviteCodeService {
         repository.deleteAll(expiredCodes);
     }
 
-    public boolean doesTeamHasValidInviteCode(Team team) {
-        if (!doesTeamHasInviteCode(team))
+    public boolean doesTeamHaveValidInviteCode(Team team) {
+        if (!doesTeamHaveInviteCode(team))
             return false;
         var inviteCode = getTeamInviteCode(team);
         return !inviteCode.isExpired();
     }
 
-    public boolean doesTeamHasInviteCode(Team team) {
+    public boolean doesTeamHaveInviteCode(Team team) {
         return repository
                 .findAll().stream().anyMatch(code -> Objects.equals(code.getTeam().getId(), team.getId()));
     }
@@ -67,7 +67,7 @@ public class InviteCodeService {
     }
 
     public InviteCode addNewInviteCode(Team team) {
-        if (doesTeamHasInviteCode(team)) {
+        if (doesTeamHaveInviteCode(team)) {
             var inviteCode = getTeamInviteCode(team);
             deleteInviteCode(inviteCode);
         }

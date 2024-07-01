@@ -1,5 +1,7 @@
 package com.frostholl.projectHiveBack.service;
 
+import com.frostholl.projectHiveBack.exception.auth.UserNotFoundException;
+import com.frostholl.projectHiveBack.exception.task.InsufficientRightsException;
 import com.frostholl.projectHiveBack.exception.team.NonTeamMemberAccessException;
 import com.frostholl.projectHiveBack.exception.team.TeamAdminNotFoundException;
 import com.frostholl.projectHiveBack.exception.team.TeamNotFoundException;
@@ -24,9 +26,7 @@ public class TeamService {
 
     private final InviteCodeService inviteCodeService;
 
-    public List<Team> getAllTeams() {
-        return repository.findAll();
-    }
+    private final TaskService taskService;
 
     public Team getTeamById(Integer id) {
         var team = repository.findTeamById(id);
@@ -60,7 +60,6 @@ public class TeamService {
                 .build();
         var addedTeam = repository.save(team);
         teamMemberService.addNewTeamMember(admin);
-        addedTeam.setAdmin(admin);
         addedTeam.setInviteCode(inviteCodeService.addNewInviteCode(addedTeam));
         repository.save(addedTeam);
     }
@@ -97,5 +96,73 @@ public class TeamService {
     public List<Team> getUsersTeams(User user) {
         var members = teamMemberService.getTeamMembersByUser(user);
         return members.stream().map(TeamMember::getTeam).toList();
+    }
+
+    public void deleteTeam(Team team) {
+        var tasks = taskService.getAllTeamTasks(team);
+        for (var task : tasks) {
+            taskService.deleteTask(task);
+        }
+        var members = teamMemberService.getAllMembersOfTeam(team);
+        for (var member : members) {
+            teamMemberService.deleteTeamMember(member);
+        }
+        if (team.getInviteCode() != null) {
+            inviteCodeService.deleteInviteCode(team.getInviteCode());
+        }
+        repository.delete(team);
+    }
+
+    public boolean tryGrantAdminRoleOnLeave(User adminToLeave, Team team) {
+        var otherMembers = getTeamMembers(team)
+                .stream()
+                .filter(member -> !Objects.equals(member.getUser().getId(), adminToLeave.getId()))
+                .toList();
+        if (otherMembers.isEmpty()) {
+            return false;
+        }
+        var mods = otherMembers
+                .stream()
+                .filter(member -> member.getRole() == TeamRole.MODERATOR)
+                .toList();
+        TeamMember newAdmin;
+        if (mods.isEmpty()) {
+            newAdmin = otherMembers.stream().findFirst().get();
+            teamMemberService.grantTeamMember(newAdmin, TeamRole.ADMINISTRATOR);
+        } else {
+            newAdmin = mods.stream().findFirst().get();
+            teamMemberService.grantTeamMember(newAdmin, TeamRole.ADMINISTRATOR);
+        }
+        teamMemberService.deleteTeamMember(getUserAsTeamMember(adminToLeave, team));
+        return true;
+    }
+
+    public void kickMemberFromTeam(TeamMember teamMember) {
+        var memberTasks = taskService.getAllTeamTasks(teamMember.getTeam())
+                .stream()
+                .filter(task -> Objects.equals(task.getPublisher().getId(), teamMember.getId())
+                        || Objects.equals(task.getExecutor().getId(), teamMember.getId()))
+                .toList();
+        for (var task: memberTasks)
+            taskService.deleteTask(task);
+        teamMemberService.deleteTeamMember(teamMember);
+    }
+
+    public void kickMemberFromTeam(User user, Team team) {
+        var teamMember = getUserAsTeamMember(user, team);
+        kickMemberFromTeam(teamMember);
+    }
+
+    public void kickUserFromTeam(String userToKickLogin, Team team) {
+        var members = getTeamMembers(team);
+        var memberToKick = members
+                .stream()
+                .filter(member -> Objects.equals(member.getUser().getLogin(), userToKickLogin))
+                .findFirst().orElseThrow(() -> new UserNotFoundException("User not found."));
+
+        if (memberToKick.getRole() == TeamRole.ADMINISTRATOR) {
+            throw new InsufficientRightsException("Insufficient rights.");
+        }
+        kickMemberFromTeam(memberToKick);
     }
 }

@@ -1,6 +1,7 @@
 package com.frostholl.projectHiveBack.model;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -21,11 +22,7 @@ public class Team {
 
     @JsonManagedReference
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "admin_id")
-    private TeamMember admin;
-
-    @JsonManagedReference
-    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "invite_code_id")
+    @Nullable
     private InviteCode inviteCode;
 }

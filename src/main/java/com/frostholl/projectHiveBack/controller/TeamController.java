@@ -1,11 +1,13 @@
 package com.frostholl.projectHiveBack.controller;
 
+import com.frostholl.projectHiveBack.exception.task.InsufficientRightsException;
 import com.frostholl.projectHiveBack.exception.team.InviteCodeNotFoundOrExpiredException;
 import com.frostholl.projectHiveBack.exception.team.NonTeamMemberAccessException;
-import com.frostholl.projectHiveBack.model.Team;
+import com.frostholl.projectHiveBack.model.Task;
 import com.frostholl.projectHiveBack.model.TeamRole;
 import com.frostholl.projectHiveBack.model.User;
 import com.frostholl.projectHiveBack.request.AddNewTeamRequest;
+import com.frostholl.projectHiveBack.request.KickUserFromTeamRequest;
 import com.frostholl.projectHiveBack.response.TeamInfoResponse;
 import com.frostholl.projectHiveBack.service.InviteCodeService;
 import com.frostholl.projectHiveBack.service.TaskService;
@@ -41,7 +43,6 @@ public class TeamController {
         var response = TeamInfoResponse.builder()
                 .id(team.getId())
                 .teamName(team.getName())
-                .admin(team.getAdmin())
                 .memberList(service.getTeamMembers(team))
                 .inviteCode(isModOrAdmin ? team.getInviteCode() : null)
                 .activeTasks(taskService.getActiveTeamTasks(team))
@@ -81,7 +82,6 @@ public class TeamController {
                     return TeamInfoResponse.builder()
                             .id(team.getId())
                             .teamName(team.getName())
-                            .admin(team.getAdmin())
                             .memberList(service.getTeamMembers(team))
                             .inviteCode(isModOrAdmin ? team.getInviteCode() : null)
                             .activeTasks(taskService.getActiveTeamTasks(team))
@@ -89,5 +89,83 @@ public class TeamController {
                 }
         ).toList();
         return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/delete/{teamId}")
+    public ResponseEntity<String> deleteTeam(@AuthenticationPrincipal User user,
+                                             @PathVariable Integer teamId
+    ) {
+        var team = service.getTeamById(teamId);
+        if (!service.isUserATeamMember(user, team)) {
+            throw new NonTeamMemberAccessException("Attempting to access a team without being a member of it.");
+        }
+        TeamRole userRole = service.getUsersTeamRole(user, team);
+        boolean isAdmin = userRole == TeamRole.ADMINISTRATOR;
+        if (!isAdmin) {
+            throw new InsufficientRightsException("Insufficient rights.");
+        }
+        service.deleteTeam(team);
+        return ResponseEntity.ok("Team deleted.");
+    }
+
+    @PostMapping("/leave/{teamId}")
+    public ResponseEntity<String> leaveTeam(@AuthenticationPrincipal User user,
+                                            @PathVariable Integer teamId
+    ) {
+        var team = service.getTeamById(teamId);
+        if (!service.isUserATeamMember(user, team)) {
+            throw new NonTeamMemberAccessException("Attempting to access a team without being a member of it.");
+        }
+        TeamRole userRole = service.getUsersTeamRole(user, team);
+        boolean isAdmin = userRole == TeamRole.ADMINISTRATOR;
+        if (isAdmin) {
+            if (!service.tryGrantAdminRoleOnLeave(user, team)) {
+                service.deleteTeam(team);
+            }
+            return ResponseEntity.ok("Successfully left the team.");
+        }
+        service.kickMemberFromTeam(user, team);
+        return ResponseEntity.ok("Successfully left the team.");
+    }
+
+    @PostMapping("/kick")
+    public ResponseEntity<String> kickUserFromTeam(@AuthenticationPrincipal User user,
+                                                   @RequestBody KickUserFromTeamRequest request
+    ) {
+        var team = service.getTeamById(request.getTeamId());
+        if (!service.isUserATeamMember(user, team)) {
+            throw new NonTeamMemberAccessException("Attempting to access a team without being a member of it.");
+        }
+        TeamRole userRole = service.getUsersTeamRole(user, team);
+        boolean isAdminOrMod = userRole != TeamRole.MEMBER;
+        if (!isAdminOrMod) {
+            throw new InsufficientRightsException("Insufficient rights.");
+        }
+        service.kickUserFromTeam(request.getUserLogin(), team);
+        return ResponseEntity.ok("Successfully kicked user from the team.");
+    }
+
+    @GetMapping("/not-approved-tasks/{teamId}")
+    public ResponseEntity<List<Task>> getNotApprovedTasks(@AuthenticationPrincipal User user,
+                                                          @PathVariable Integer teamId
+    ) {
+        var team = service.getTeamById(teamId);
+        if (!service.isUserATeamMember(user, team)) {
+            throw new NonTeamMemberAccessException("Attempting to access a team without being a member of it.");
+        }
+        var tasks = taskService.getNotApprovedTeamTasks(team);
+        return ResponseEntity.ok(tasks);
+    }
+
+    @GetMapping("/finished-tasks/{teamId}")
+    public ResponseEntity<List<Task>> getFinishedTasks(@AuthenticationPrincipal User user,
+                                                       @PathVariable Integer teamId
+    ) {
+        var team = service.getTeamById(teamId);
+        if (!service.isUserATeamMember(user, team)) {
+            throw new NonTeamMemberAccessException("Attempting to access a team without being a member of it.");
+        }
+        var tasks = taskService.getFinishedTeamTasks(team);
+        return ResponseEntity.ok(tasks);
     }
 }

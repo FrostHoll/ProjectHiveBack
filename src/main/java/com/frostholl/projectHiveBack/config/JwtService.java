@@ -21,6 +21,12 @@ public class JwtService {
     @Value("${jwt.secret}")
     private String secretKey;
 
+    // 1 day
+    private final long JWT_EXPIRATION = 86_400_000L;
+
+    // 60 days
+    private final long REFRESH_EXPIRATION = 5_184_000_000L;
+
     public String extractUsername(String jwtToken) {
         return extractAllClaim(jwtToken, Claims::getSubject);
     }
@@ -30,13 +36,11 @@ public class JwtService {
     }
 
     public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {
-        return Jwts.builder()
-                .claims(extraClaims)
-                .subject(userDetails.getUsername())
-                .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24))
-                .signWith(getSignInKey(), SignatureAlgorithm.HS384)
-                .compact();
+        return buildToken(extraClaims, userDetails, JWT_EXPIRATION);
+    }
+
+    public String generateRefreshToken(UserDetails userDetails) {
+        return buildToken(new HashMap<>(), userDetails, REFRESH_EXPIRATION);
     }
 
     public <T> T extractAllClaim(String token, Function<Claims, T> claimsResolver) {
@@ -69,5 +73,18 @@ public class JwtService {
     private SecretKey getSignInKey() {
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         return Keys.hmacShaKeyFor(keyBytes);
+    }
+
+    private String buildToken(Map<String, Object> extraClaims,
+                              UserDetails userDetails,
+                              long expiration
+    ) {
+        return Jwts.builder()
+                .claims(extraClaims)
+                .subject(userDetails.getUsername())
+                .issuedAt(new Date(System.currentTimeMillis()))
+                .expiration(new Date(System.currentTimeMillis() + expiration))
+                .signWith(getSignInKey(), SignatureAlgorithm.HS384)
+                .compact();
     }
 }

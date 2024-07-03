@@ -66,4 +66,16 @@ public class TeamExceptionHandler {
 
         return new ResponseEntity<>(teamException, HttpStatus.CONFLICT);
     }
+
+    @ExceptionHandler(value = {IncorrectDataException.class})
+    public ResponseEntity<Object> handleIncorrectDataException
+            (IncorrectDataException incorrectDataException) {
+        TeamException teamException = new TeamException(
+                incorrectDataException.getMessage(),
+                incorrectDataException.getCause(),
+                HttpStatus.CONFLICT
+        );
+
+        return new ResponseEntity<>(teamException, HttpStatus.CONFLICT);
+    }
 }

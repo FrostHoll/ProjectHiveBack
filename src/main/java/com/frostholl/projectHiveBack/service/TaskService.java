@@ -2,10 +2,7 @@ package com.frostholl.projectHiveBack.service;
 
 import com.frostholl.projectHiveBack.exception.task.IncorrectDeadlineException;
 import com.frostholl.projectHiveBack.exception.task.TaskNotFoundException;
-import com.frostholl.projectHiveBack.model.Task;
-import com.frostholl.projectHiveBack.model.Team;
-import com.frostholl.projectHiveBack.model.TeamMember;
-import com.frostholl.projectHiveBack.model.User;
+import com.frostholl.projectHiveBack.model.*;
 import com.frostholl.projectHiveBack.repository.TaskRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -56,7 +53,8 @@ public class TaskService {
         return repository
                 .findAll()
                 .stream()
-                .filter(task -> Objects.equals(task.getTeam().getId(), team.getId()) && !task.isFinished())
+                .filter(task -> Objects.equals(task.getTeam().getId(), team.getId())
+                        && task.getStatus() != TaskStatus.APPROVED)
                 .toList();
     }
 
@@ -64,7 +62,8 @@ public class TaskService {
         return repository
                 .findAll()
                 .stream()
-                .filter(task -> Objects.equals(task.getTeam().getId(), team.getId()) && task.isPicked() && !task.isFinished())
+                .filter(task -> Objects.equals(task.getTeam().getId(), team.getId())
+                        && task.getStatus() == TaskStatus.PICKED)
                 .toList();
     }
 
@@ -73,9 +72,7 @@ public class TaskService {
                 .findAll()
                 .stream()
                 .filter(task -> Objects.equals(task.getTeam().getId(), team.getId())
-                        && task.isPicked()
-                        && task.isFinished()
-                        && !task.isApproved())
+                        && task.getStatus() == TaskStatus.FINISHED)
                 .toList();
     }
 
@@ -84,9 +81,7 @@ public class TaskService {
                 .findAll()
                 .stream()
                 .filter(task -> Objects.equals(task.getTeam().getId(), team.getId())
-                        && task.isPicked()
-                        && task.isFinished()
-                        && task.isApproved())
+                        && task.getStatus() == TaskStatus.APPROVED)
                 .toList();
     }
 
@@ -110,7 +105,7 @@ public class TaskService {
                 .findAll()
                 .stream()
                 .filter(task -> task.getExecutor() != null)
-                .filter(task -> Objects.equals(task.getExecutor().getUser().getId(), user.getId()) && !task.isFinished())
+                .filter(task -> Objects.equals(task.getExecutor().getUser().getId(), user.getId()) && task.getStatus() != TaskStatus.APPROVED)
                 .toList();
     }
 

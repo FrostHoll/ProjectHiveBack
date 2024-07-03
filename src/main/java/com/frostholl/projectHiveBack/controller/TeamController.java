@@ -1,8 +1,10 @@
 package com.frostholl.projectHiveBack.controller;
 
 import com.frostholl.projectHiveBack.exception.task.InsufficientRightsException;
+import com.frostholl.projectHiveBack.exception.team.IncorrectDataException;
 import com.frostholl.projectHiveBack.exception.team.InviteCodeNotFoundOrExpiredException;
 import com.frostholl.projectHiveBack.exception.team.NonTeamMemberAccessException;
+import com.frostholl.projectHiveBack.model.InviteCode;
 import com.frostholl.projectHiveBack.model.Task;
 import com.frostholl.projectHiveBack.model.TeamRole;
 import com.frostholl.projectHiveBack.model.User;
@@ -55,6 +57,9 @@ public class TeamController {
             @AuthenticationPrincipal User user,
             @RequestBody AddNewTeamRequest request
     ) {
+        if (request.getTeamName().isEmpty()) {
+            throw new IncorrectDataException("Incorrect team name.");
+        }
         service.addNewTeam(user, request.getTeamName());
         return ResponseEntity.ok("Team created.");
     }
@@ -67,10 +72,27 @@ public class TeamController {
         var code = inviteCodeService.getInviteCodeById(inviteCode);
         if (code.isExpired()) {
             inviteCodeService.deleteInviteCode(code);
-            throw new InviteCodeNotFoundOrExpiredException("Invite code was not found or expired.");
+            throw new InviteCodeNotFoundOrExpiredException("Invite code was not found or is expired.");
         }
         service.userJoinTeam(user, code.getTeam());
         return ResponseEntity.ok("Joined to the team.");
+    }
+
+    @PostMapping("/refresh-invite-code/{teamId}")
+    public ResponseEntity<InviteCode> refreshTeamInviteCode(@AuthenticationPrincipal User user,
+                                                            @PathVariable Integer teamId
+    ) {
+        var team = service.getTeamById(teamId);
+        if (!service.isUserATeamMember(user, team)) {
+            throw new NonTeamMemberAccessException("Attempting to access a team without being a member of it.");
+        }
+        TeamRole userRole = service.getUsersTeamRole(user, team);
+        boolean isAdminOrMod = userRole != TeamRole.MEMBER;
+        if (!isAdminOrMod) {
+            throw new InsufficientRightsException("Insufficient rights.");
+        }
+        var inviteCode = inviteCodeService.addNewInviteCode(team);
+        return ResponseEntity.ok(inviteCode);
     }
 
     @GetMapping("/user-teams")

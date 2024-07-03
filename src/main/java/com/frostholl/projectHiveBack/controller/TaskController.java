@@ -1,9 +1,6 @@
 package com.frostholl.projectHiveBack.controller;
 
-import com.frostholl.projectHiveBack.exception.task.InsufficientRightsException;
-import com.frostholl.projectHiveBack.exception.task.TaskIsAlreadyFinishedException;
-import com.frostholl.projectHiveBack.exception.task.TaskIsAlreadyTakenException;
-import com.frostholl.projectHiveBack.exception.task.UnauthorizedTaskAccessException;
+import com.frostholl.projectHiveBack.exception.task.*;
 import com.frostholl.projectHiveBack.model.Task;
 import com.frostholl.projectHiveBack.model.TeamRole;
 import com.frostholl.projectHiveBack.model.User;
@@ -116,5 +113,26 @@ public class TaskController {
     @GetMapping("/picked")
     public List<Task> getUsersPickedTasks(@AuthenticationPrincipal User user) {
         return service.getUserPickedTasks(user);
+    }
+
+    @PostMapping("/approve/{taskId}")
+    public ResponseEntity<String> approveTask(@AuthenticationPrincipal User user,
+                                              @PathVariable Integer taskId) {
+        var task = service.getTaskById(taskId);
+        var team = task.getTeam();
+        if (!teamService.isUserATeamMember(user, team)) {
+            throw new UnauthorizedTaskAccessException("Access to an unauthorized team's task.");
+        }
+        if (teamService.getUserAsTeamMember(user, team).getRole() == TeamRole.MEMBER) {
+            throw new InsufficientRightsException("Insufficient rights.");
+        }
+        if(!task.isFinished()) {
+            throw new TaskNotYetFinishedException("Cannot approve non-finished task.");
+        }
+        if(task.isApproved()) {
+            throw new TaskIsAlreadyApprovedException("Task is already approved.");
+        }
+        service.approveTask(task);
+        return ResponseEntity.ok("Task has been successfully approved.");
     }
 }

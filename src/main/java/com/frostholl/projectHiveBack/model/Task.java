@@ -1,5 +1,6 @@
 package com.frostholl.projectHiveBack.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -44,10 +45,22 @@ public class Task {
 
     private ZonedDateTime finishedTime = null;
 
+    @Enumerated(EnumType.STRING)
+    public TaskStatus getStatus() {
+        if (approved) return TaskStatus.APPROVED;
+        if (finishedTime != null) return TaskStatus.FINISHED;
+        if (executor != null) return TaskStatus.PICKED;
+        return TaskStatus.PUBLISHED;
+    }
+
+    @JsonIgnore
+    @Transient
     public boolean isPicked() {
         return executor != null;
     }
 
+    @JsonIgnore
+    @Transient
     public boolean isFinished() {
         return finishedTime != null;
     }

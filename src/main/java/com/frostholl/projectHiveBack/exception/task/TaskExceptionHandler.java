@@ -78,4 +78,28 @@ public class TaskExceptionHandler {
 
         return new ResponseEntity<>(taskException, HttpStatus.CONFLICT);
     }
+
+    @ExceptionHandler(value = {TaskNotYetFinishedException.class})
+    public ResponseEntity<Object> handleTaskNotYetFinishedException
+            (TaskNotYetFinishedException taskNotYetFinishedException) {
+        TaskException taskException = new TaskException(
+                taskNotYetFinishedException.getMessage(),
+                taskNotYetFinishedException.getCause(),
+                HttpStatus.CONFLICT
+        );
+
+        return new ResponseEntity<>(taskException, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(value = {TaskIsAlreadyApprovedException.class})
+    public ResponseEntity<Object> handleTaskIsAlreadyApprovedException
+            (TaskIsAlreadyApprovedException taskIsAlreadyApprovedException) {
+        TaskException taskException = new TaskException(
+                taskIsAlreadyApprovedException.getMessage(),
+                taskIsAlreadyApprovedException.getCause(),
+                HttpStatus.CONFLICT
+        );
+
+        return new ResponseEntity<>(taskException, HttpStatus.CONFLICT);
+    }
 }

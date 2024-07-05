@@ -19,7 +19,7 @@ public class InviteCode {
     private String id;
 
     @JsonBackReference
-    @ManyToOne(fetch = FetchType.EAGER)
+    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinColumn(name = "team_id")
     private Team team;
 

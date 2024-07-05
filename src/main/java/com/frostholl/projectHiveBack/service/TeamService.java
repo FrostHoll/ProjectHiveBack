@@ -165,4 +165,13 @@ public class TeamService {
         }
         kickMemberFromTeam(memberToKick);
     }
+
+    public void deleteInviteCode(Team team) {
+        if (inviteCodeService.doesTeamHaveInviteCode(team)) {
+            var inviteCode = inviteCodeService.getTeamInviteCode(team);
+            team.setInviteCode(null);
+            repository.save(team);
+            inviteCodeService.deleteInviteCode(inviteCode);
+        }
+    }
 }

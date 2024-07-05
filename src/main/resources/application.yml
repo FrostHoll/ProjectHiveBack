@@ -13,6 +13,6 @@ spring:
         format_sql: true
     database: postgresql
     database-platform: org.hibernate.dialect.PostgreSQLDialect
-app-version: 1.04
+app-version: 1.041
 jwt:
   secret: 418FB88E3BC42CE46765866934E2D5FF0EBACC4EF773305FDFDF10B1EFA3908E

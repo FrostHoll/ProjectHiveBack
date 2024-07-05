@@ -91,6 +91,7 @@ public class TeamController {
         if (!isAdminOrMod) {
             throw new InsufficientRightsException("Insufficient rights.");
         }
+        service.deleteInviteCode(team);
         var inviteCode = inviteCodeService.addNewInviteCode(team);
         return ResponseEntity.ok(inviteCode);
     }

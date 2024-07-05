@@ -27,8 +27,8 @@ public class InviteCodeService {
     public void deleteExpiredCodes() {
         Date currentDate = new Date(System.currentTimeMillis());
         List<InviteCode> expiredCodes = repository.findExpiredCodes(currentDate);
-        //TODO: We cannot delete inviteCodes before setting team's reference to null (or can we?)
-        repository.deleteAll(expiredCodes);
+        //TODO: We cannot delete inviteCodes before setting team's reference to null
+        //repository.deleteAll(expiredCodes);
     }
 
     public boolean doesTeamHaveValidInviteCode(Team team) {

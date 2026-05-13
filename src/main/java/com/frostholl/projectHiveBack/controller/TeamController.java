@@ -93,6 +93,8 @@ public class TeamController {
         }
         service.deleteInviteCode(team);
         var inviteCode = inviteCodeService.addNewInviteCode(team);
+        team.setInviteCode(inviteCode);
+        service.updateTeam(team);
         return ResponseEntity.ok(inviteCode);
     }
 

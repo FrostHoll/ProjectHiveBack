@@ -77,7 +77,7 @@ public class UserService implements UserDetailsService {
     }
 
     public void changeUserPassword(User user, String pass, String newPass) {
-        if (passwordEncoder.matches(pass, user.getPassword())) {
+        if (!passwordEncoder.matches(pass, user.getPassword())) {
             throw new IncorrectUserDataException("Wrong password!");
         }
 

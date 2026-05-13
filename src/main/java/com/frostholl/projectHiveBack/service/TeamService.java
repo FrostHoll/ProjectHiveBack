@@ -49,6 +49,10 @@ public class TeamService {
         return member.getRole();
     }
 
+    public void updateTeam(Team team) {
+        repository.save(team);
+    }
+
     public void addNewTeam(User creator, String teamName) {
         var team = Team.builder()
                 .name(teamName)
